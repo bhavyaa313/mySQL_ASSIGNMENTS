@@ -126,37 +126,30 @@
 
 
 6.   	USE `northwind`;
-	DROP procedure IF EXISTS `Query6`;
+	DROP procedure IF EXISTS `q6`;
+
+	USE `northwind`;
+	DROP procedure IF EXISTS `northwindfinal`.`q6`;
+	;
 
 	DELIMITER $$
 	USE `northwind`$$
-	CREATE PROCEDURE `Query6` ( IN OrderID int ,
-	IN ProductID int ,
-	IN UnitPrice decimal(10,4), 
-	IN Quantity INT ,
-	IN Discount double(8,0),
-	IN CustomerID varchar(5) ,
-	IN EmployeeID int ,
-	IN OrderDate datetime ,
-	IN RequiredDate datetime ,
-	IN ShippedDate datetime ,
-	IN ShipVia int ,
-	IN Freight decimal(10,4) ,
-	IN ShipName varchar(40) ,
-	IN ShipAddress varchar(60) ,
-	IN ShipCity varchar(15) ,
-	IN ShipRegion varchar(15) ,
-	IN ShipPostalCode varchar(10) ,
-	IN ShipCountry varchar(15))
+	CREATE DEFINER=`root`@`localhost` PROCEDURE `q6`(IN OrderID INT, IN CustomerID VARCHAR(5), IN EmployeeID INT, IN OrderDate DATETIME, IN RequiredDate DATETIME, IN ShippedDateN DATETIME, IN ShipVia INT, IN Freight DECIMAL(10,4), IN ShipName VARCHAR(40), IN ShipAddress VARCHAR(60), IN ShipCity VARCHAR(15), IN ShipRegion VARCHAR(15), IN ShipPostalCode VARCHAR(10), IN ShipCountry VARCHAR(15), IN Productid INT, IN Quantity SMALLINT)
 	BEGIN
-	INSERT INTO orders (OrderID , ProductID, UnitPrice, Quantity , Discount)
-	VALUES (OrderID , ProductID, UnitPrice, Quantity , Discount);
-	INSERT INTO orders (OrderID ,CustomerID ,EmployeeID ,OrderDate ,RequiredDate,ShippedDate,Freight  ,ShipName  ,ShipAddress ,ShipCity,ShipRegion ,ShipPostalCode ,ShipCountry)
-	VALUES (OrderID ,CustomerID ,EmployeeID ,OrderDate ,RequiredDate,ShippedDate,Freight  ,ShipName  ,ShipAddress ,ShipCity,ShipRegion ,ShipPostalCode ,ShipCountry);
+	DECLARE pid INT;
+	DECLARE Uprice decimal(10,4); 
+	SET pid = Productid;
 
+	SET uprice = (SELECT max(UnitPrice) 
+                   FROM orderdetails 
+                   WHERE pid = Productid group by Productid);
+
+	INSERT INTO orders(OrderID, CustomerID, EmployeeID, OrderDate, RequiredDate, ShippedDate, ShipVia, Freight, ShipName, ShipAddress, ShipCity, ShipRegion, ShipPostalCode, ShipCountry) values(OrderID, CustomerID, EmployeeID, OrderDate, RequiredDate, ShippedDate, ShipVia, Freight, ShipName, ShipAddress, ShipCity, ShipRegion, ShipPostalCode, ShipCountry);
+	INSERT INTO orderdetails(OrderId, Productid, UnitPrice, Quantity, Discount) values (OrderId, pid, uprice, Quantity, Discount);
 	END$$
 
 	DELIMITER ;
+	;
 
 
 
@@ -164,38 +157,35 @@
 
 
 7.      USE `northwind`;
-	DROP procedure IF EXISTS `Query7`;
+	DROP procedure IF EXISTS `q7`;
+	
+	USE `northwind`;
+	DROP procedure IF EXISTS `northwind`.`q7`;
+	;
 
 	DELIMITER $$
 	USE `northwind`$$
-	CREATE PROCEDURE `Query7` (IN OrderID int ,
-	IN ProductID int ,
-	IN UnitPrice decimal(10,4), 
-	IN Quantity INT ,
-	IN Discount double(8,0),
-	IN CustomerID varchar(5) ,
-	IN EmployeeID int ,
-	IN OrderDate datetime ,
-	IN RequiredDate datetime ,
-	IN ShippedDate datetime ,
-	IN ShipVia int ,
-	IN Freight decimal(10,4) ,
-	IN ShipName varchar(40) ,
-	IN ShipAddress varchar(60) ,
-	IN ShipCity varchar(15) ,
-	IN ShipRegion varchar(15) ,
-	IN ShipPostalCode varchar(10) ,
-	IN ShipCountry varchar(15))
+	CREATE DEFINER=`root`@`localhost` PROCEDURE `q7`(IN OID INT, IN PID INT, IN Qty SMALLINT)
 	BEGIN
-	UPDATE orderdetails
-	SET OrderID = OrderID, ProductID = ProductID, UnitPrice = UnitPrice , Quantity = Quantity , Discount = Discount;
-	UPDATE orders
-	SET OrderID = OrderID, CustomerID = CustomerID, EmployeeID = EmployeeID, OrderDate = OrderDate , RequiredDate = RequiredDate , ShippedDate = ShippedDate , ShipVia = ShipVia, Freight = Freight, 
-	ShipName = ShipName,  ShipAddress = ShipAddress, ShipCity = ShipCity , ShipRegion = ShipRegion , ShipPostalCode = ShipPostalCode , ShipCountry = ShipCountry;
+
+	DECLARE unitsononreder smallint;
+
+	SET unitsononreder = (SELECT MAX(Quantity)
+                   FROM orderdetails 
+                   WHERE ProductID = PID);
+                   
+	UPDATE orderdetails 
+	SET OrderID = OID, Quantity = QTY 
+	WHERE OrderID = OID;
+
+	UPDATE products 
+	SET products.UnitsOnOrder = (unitsononreder + Qty)
+	WHERE products.ProductID = PID;
+
 	END$$
 
 	DELIMITER ;
-
+	;
 
 
 
